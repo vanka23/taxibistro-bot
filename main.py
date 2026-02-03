@@ -218,59 +218,83 @@ import telebot
 bot = telebot.TeleBot('8253782171:AAFib-Jsk7Bz-lGPNhlt0mANqNywuBF3vFo')
 
 # Затем используйте:
-bot.send_message(
-    ADMIN_ID,
-    # Добавьте этот обработчик
+# Обработчик для завершения смены водителя
 @bot.message_handler(content_types=['text'])
 def handle_messages(message):
-    # Определяем cid и comm здесь
-    cid = message.chat.id  # Замените на ваше определение, если нужно
-    comm = 0  # Замените на реальное вычисление комиссии
-    
-    if message.text.lower() == "закончить смену":  # Замените на ваше условие
-        try:
+    try:
+        # Получаем ID водителя
+        cid = message.chat.id
+        
+        # Получаем комиссию из базы данных
+        sql.execute("SELECT commission FROM drivers WHERE id=?", (cid,))
+        result = sql.fetchone()
+        
+        if not result:
+            bot.send_message(cid, "Ошибка: вы не зарегистрированы в системе")
+            return
+            
+        comm = result[0]  # Получаем значение комиссии
+        
+        if message.text.lower() == "закончить смену":
+            # Отправляем сообщение админу
             bot.send_message(
                 ADMIN_ID, 
                 f"🚨 Водитель {cid} закончил смену. Долг сервису: {round(comm,2)} ₽"
             )
             
+            # Обновляем данные в базе
             sql.execute(
                 "UPDATE drivers SET trips=0, earned=0, commission=0 WHERE id=?", 
                 (cid,)
             )
             db.commit()
             
-        except Exception as e:
-            print(f"Произошла ошибка: {e}")
-            try:
-                db.rollback()
-            except Exception as db_e:
-                print(f"Ошибка при откате транзакции: {db_e}")
+            # Информируем водителя
+            bot.send_message(
+                cid,
+                "Смена успешно завершена! Спасибо за работу!"
+            )
+            
+    except Exception as e:
+        print(f"Произошла ошибка: {e}")
+        try:
+            db.rollback()
+            bot.send_message(
+                cid,
+                "Произошла ошибка при завершении смены. Попробуйте позже."
+            )
+        except Exception as db_e:
+            print(f"Ошибка при откате транзакции: {db_e}")
 
-db.commit()
-
-
-# ----------------- АДМИН -----------------
+# Админ-панель
 @bot.message_handler(commands=["coder"])
 def admin_panel(message):
-   if message.chat.id != ADMIN_ID:
-    return
+    if message.chat.id != ADMIN_ID:
+        return
+    
+    try:
+        sql.execute("SELECT id,trips,earned,commission,rating_sum,rating_count FROM drivers")
+        text = "📊 Статистика TaxiBistro:\n\n"
 
-sql.execute("SELECT id,trips,earned,commission,rating_sum,rating_count FROM drivers")
-text = "📊 Статистика TaxiBistro:\n\n"
-
-for d in sql.fetchall():
-    did,trips,earned,comm,rsum,rcount = d
-rating = round(rsum/rcount,2) if rcount else 0
-text += f"🚕 Водитель {did}\nПоездок: {trips}\nЗаработано: {earned} ₽\nКомиссия: {round(comm,2)} ₽\nРейтинг: {rating}\n\n"
-bot.send_message(message.chat.id,text)
+        for d in sql.fetchall():
+            did, trips, earned, comm, rsum, rcount = d
+            rating = round(rsum/rcount, 2) if rcount else 0
+            text += (
+                f"🚕 Водитель {did}\n"
+                f"Поездок: {trips}\n"
+                f"Заработано: {earned} ₽\n"
+                f"Комиссия: {round(comm,2)} ₽\n"
+                f"Рейтинг: {rating}\n\n"
+            )
+        
+        bot.send_message(message.chat.id, text)
+        
+    except Exception as e:
+        print(f"Ошибка в админ-панели: {e}")
+        bot.send_message(
+            message.chat.id,
+            "Произошла ошибка при получении статистики"
+        )
 
 print("TaxiBistro v7 запущен")
-
 bot.infinity_polling()
-
-
-
-
-
-
