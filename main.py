@@ -214,7 +214,7 @@ def end_shift(message):
     trips, earned, comm = sql.fetchone()
     bot.send_message(cid,
         f"📊 Итог смены:\nПоездок: {trips}\nДоход от пассажиров: {earned} ₽\n💼 К оплате сервису: {round(comm,2)} ₽")
-    bot.
+    bot
 send_message(ADMIN_ID, f"🚨 Водитель {cid} закончил смену. Долг сервису: {round(comm,2)} ₽")
     sql.execute("UPDATE drivers SET trips=0, earned=0, commission=0 WHERE id=?", (cid,))
     db.commit()
@@ -234,4 +234,5 @@ def admin_panel(message):
 print("TaxiBistro v7 запущен")
 
 bot.infinity_polling()
+
 
