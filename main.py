@@ -222,9 +222,12 @@ db.commit()
 # ----------------- АДМИН -----------------
 @bot.message_handler(commands=["coder"])
 def admin_panel(message):
-    if message.chat.id != ADMIN_ID: return
-        sql.execute("SELECT id,trips,earned,commission,rating_sum,rating_count FROM drivers")
+   if message.chat.id != ADMIN_ID:
+    return
+
+sql.execute("SELECT id,trips,earned,commission,rating_sum,rating_count FROM drivers")
 text = "📊 Статистика TaxiBistro:\n\n"
+
 for d in sql.fetchall():
     did,trips,earned,comm,rsum,rcount = d
 rating = round(rsum/rcount,2) if rcount else 0
@@ -234,3 +237,4 @@ bot.send_message(message.chat.id,text)
 print("TaxiBistro v7 запущен")
 
 bot.infinity_polling()
+
