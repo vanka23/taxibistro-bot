@@ -212,7 +212,7 @@ def end_shift(message):
     cid = message.chat.id
     sql.execute("SELECT trips, earned, commission FROM drivers WHERE id=?", (cid,))
     trips, earned, comm = sql.fetchone()
-    bot.send_message(cid,
+    bot.send_message(cid,)
         # В начале файла добавьте:
 import telebot
 bot = telebot.TeleBot('8253782171:AAFib-Jsk7Bz-lGPNhlt0mANqNywuBF3vFo')
@@ -245,6 +245,7 @@ bot.send_message(message.chat.id,text)
 print("TaxiBistro v7 запущен")
 
 bot.infinity_polling()
+
 
 
 
