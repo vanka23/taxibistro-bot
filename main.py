@@ -127,7 +127,7 @@ def driver_offline(message):
 def receive_location(message):
     cid = message.chat.id
     if message.location.live_period:
-update_driver_gps(cid,message.location.latitude,message.location.longitude)
+        update_driver_gps(cid,message.location.latitude,message.location.longitude)
     else:
         bot.send_message(cid,"📍 Отправьте live геопозицию (трансляцию)")
 
@@ -234,4 +234,5 @@ def admin_panel(message):
     bot.send_message(message.chat.id,text)
 
 print("TaxiBistro v7 запущен")
+
 bot.infinity_polling()
