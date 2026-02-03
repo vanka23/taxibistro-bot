@@ -217,23 +217,20 @@ def end_shift(message):
     bot
 send_message(ADMIN_ID, f"🚨 Водитель {cid} закончил смену. Долг сервису: {round(comm,2)} ₽")
 sql.execute("UPDATE drivers SET trips=0, earned=0, commission=0 WHERE id=?", (cid,))
-    db.commit()
+db.commit()
 
 # ----------------- АДМИН -----------------
 @bot.message_handler(commands=["coder"])
 def admin_panel(message):
     if message.chat.id != ADMIN_ID: return
-    sql.execute("SELECT id,trips,earned,commission,rating_sum,rating_count FROM drivers")
-    text = "📊 Статистика TaxiBistro:\n\n"
-    for d in sql.fetchall():
-        did,trips,earned,comm,rsum,rcount = d
-        rating = round(rsum/rcount,2) if rcount else 0
-        text += f"🚕 Водитель {did}\nПоездок: {trips}\nЗаработано: {earned} ₽\nКомиссия: {round(comm,2)} ₽\nРейтинг: {rating}\n\n"
-    bot.send_message(message.chat.id,text)
+        sql.execute("SELECT id,trips,earned,commission,rating_sum,rating_count FROM drivers")
+text = "📊 Статистика TaxiBistro:\n\n"
+for d in sql.fetchall():
+    did,trips,earned,comm,rsum,rcount = d
+rating = round(rsum/rcount,2) if rcount else 0
+text += f"🚕 Водитель {did}\nПоездок: {trips}\nЗаработано: {earned} ₽\nКомиссия: {round(comm,2)} ₽\nРейтинг: {rating}\n\n"
+bot.send_message(message.chat.id,text)
 
 print("TaxiBistro v7 запущен")
 
 bot.infinity_polling()
-
-
-
